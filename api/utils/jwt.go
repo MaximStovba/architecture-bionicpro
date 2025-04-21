@@ -3,6 +3,9 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
+	"time"
 
 	"github.com/MicahParks/keyfunc"
 	"github.com/golang-jwt/jwt/v4"
@@ -10,14 +13,27 @@ import (
 
 var (
 	jwks         *keyfunc.JWKS
-	jwksURL      = "http://localhost:8080/realms/reports-realm/protocol/openid-connect/certs"
 	requiredRole = "prothetic_user"
 )
 
 // Инициализация при старте приложения
 func InitJWKS() error {
+	keycloakURL := os.Getenv("KEYCLOAK_URL")
+	if keycloakURL == "" {
+		keycloakURL = "http://keycloak:8080"
+	}
+	jwksURL := keycloakURL + "/realms/reports-realm/protocol/openid-connect/certs"
+
 	var err error
-	jwks, err = keyfunc.Get(jwksURL, keyfunc.Options{})
+	for i := 0; i < 10; i++ {
+		jwks, err = keyfunc.Get(jwksURL, keyfunc.Options{})
+		if err == nil {
+			log.Println("Successfully initialized JWKS!")
+			return nil
+		}
+		log.Printf("Failed to fetch JWKS (attempt %d/10): %v", i+1, err)
+		time.Sleep(5 * time.Second)
+	}
 	return err
 }
 
