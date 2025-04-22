@@ -11,9 +11,14 @@ const keycloakConfig: KeycloakConfig = {
 
 const keycloak = new Keycloak(keycloakConfig);
 
+const keycloakProviderInitConfig = {
+  pkceMethod: 'S256',
+  onLoad: 'check-sso', // или 'login-required'
+};
+
 const App: React.FC = () => {
   return (
-    <ReactKeycloakProvider authClient={keycloak}>
+    <ReactKeycloakProvider authClient={keycloak} initOptions={keycloakProviderInitConfig}>
       <div className="App">
         <ReportPage />
       </div>
